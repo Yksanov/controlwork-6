@@ -1,16 +1,37 @@
 [
   {
     "Id": 1,
-    "Header": "Задача #1",
-    "Username": "Алексей М",
-    "CreateDate": "2024/05/01",
+    "Header": "Task 1",
+    "Username": "User1",
+    "CreateDate": "2024-10-05T12:30:00",
     "Status": "new"
   },
   {
     "Id": 2,
-    "Header": "Задача #2",
-    "Username": "Киров Е",
-    "CreateDate": "2024/04/01",
+    "Header": "Task 1",
+    "Username": "User1",
+    "CreateDate": "2024-10-05T12:30:00",
     "Status": "new"
+  },
+  {
+    "Id": 3,
+    "Header": "Задача #3",
+    "Username": "Ыксанов Э",
+    "CreateDate": "2024-10-05T15:40:30.0771053+06:00",
+    "Status": "new"
+  },
+  {
+    "Id": 4,
+    "Header": "Задача #4",
+    "Username": "Олег Миями",
+    "CreateDate": "2024-10-05T15:42:49.3099194+06:00",
+    "Status": "done"
+  },
+  {
+    "Id": 5,
+    "Header": "Задача #5",
+    "Username": "Test",
+    "CreateDate": "2024-10-05T15:43:51.1531656+06:00",
+    "Status": "done"
   }
 ]

@@ -1,5 +1,7 @@
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Web;
 using RazorEngine;
 using RazorEngine.Templating;
 
@@ -39,6 +41,7 @@ public class MyServer
         }
     }
 
+    //-----------------------------------------------------
     private void Process(HttpListenerContext context)
     {
         Console.WriteLine(context.Request.HttpMethod);
@@ -49,31 +52,76 @@ public class MyServer
         {
             try
             {
-                if (context.Request.HttpMethod == "POST")  // 2 Task
+                string content = BuildHtml(filename, new List<ToDoList>());
+                if (context.Request.HttpMethod == "POST" && context.Request.Url.AbsolutePath == "/index.html")
                 {
-                    StreamReader str = new StreamReader(context.Request.InputStream);
-                    string result = str.ReadToEnd();
-                    Console.WriteLine(result);
+                    StreamReader st = new StreamReader(context.Request.InputStream);
+                    content = BuildHtml(filename, new List<ToDoList>());
                 }
-                string content= "";
-                string IdFrom = context.Request.QueryString["IdFrom"];
-                string IdTo = context.Request.QueryString["IdTo"];
-
-                List<ToDoList> toDoLists = Serializer.GetEmployees();
-                List<ToDoList> filterId;
-
-                if (int.TryParse(IdFrom, out int idFrom) && int.TryParse(IdTo, out int idTo))
+                if (context.Request.HttpMethod == "POST" && context.Request.Url.AbsolutePath == "/index.html")
                 {
-                    filterId = toDoLists.Where(e => e.Id >= idFrom && e.Id <= idTo).ToList();
+                    StreamReader st = new StreamReader(context.Request.InputStream);
+                    string[] emp = st.ReadToEnd().Split("&");
+                    
+                    ToDoList toDoList = new ToDoList()
+                    {
+                        Id = _toDoLists.Count + 1,
+                        Header = HttpUtility.UrlDecode(emp[0].Split("=")[1]),
+                        Username = HttpUtility.UrlDecode(emp[1].Split("=")[1]), 
+                        CreateDate = DateTime.Now,
+                        Status = "new"
+                    };
+                    _toDoLists.Add(toDoList);
+                    JsonSerializerOptions op = new JsonSerializerOptions()
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                        WriteIndented = true
+                    };
+                    
+                    File.WriteAllText("../../../tasks.json", JsonSerializer.Serialize(_toDoLists, op));
+                    context.Response.Redirect("/index.html");
                 }
-                else
+                
+                if (context.Request.HttpMethod == "POST" && context.Request.Url.AbsolutePath == "/index.html")
                 {
-                    filterId = toDoLists;
-                }
+                    StreamReader reader = new StreamReader(context.Request.InputStream);
+                    string formData = reader.ReadToEnd();
+                    string taskIdStr = HttpUtility.ParseQueryString(formData)["taskId"];
 
-                content = BuildHtml(filename, filterId);
+                    if (int.TryParse(taskIdStr, out int taskId))
+                    {
+                        ToDoList taskToRemove = _toDoLists.FirstOrDefault(t => t.Id == taskId);
+                        if (taskToRemove != null)
+                        {
+                            _toDoLists.Remove(taskToRemove);
+
+                            JsonSerializerOptions op = new JsonSerializerOptions
+                            {
+                                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                WriteIndented = true
+                            };
+
+                            File.WriteAllText("../../../tasks.json", JsonSerializer.Serialize(_toDoLists, op));
+                        }
+                    }
+
+                    context.Response.Redirect("/index.html");
+                }
                 
                 
+                if (context.Request.Url.AbsolutePath == "/index.html")
+                {
+                    List<ToDoList> toDoLists = new List<ToDoList>(_toDoLists);
+                    if (context.Request.QueryString["IdFrom"] != null)
+                    {
+                        toDoLists = toDoLists.Where(e => e.Id >= Convert.ToInt32(context.Request.QueryString["IdFrom"])).ToList();
+                    }
+                    if (context.Request.QueryString["IdTo"] != null)
+                    {
+                        toDoLists = toDoLists.Where(e => e.Id <= Convert.ToInt32(context.Request.QueryString["IdTo"])).ToList();
+                    }
+                    content = BuildHtml(filename, toDoLists);
+                }
                 context.Response.ContentType = GetContentType(filename);
                 context.Response.ContentLength64 = System.Text.Encoding.UTF8.GetBytes(content).Length;
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(content);
@@ -130,7 +178,6 @@ public class MyServer
         Dictionary.TryGetValue(extension, out contentype);
         return contentype;
     }
-
     public void Stop()
     {
         _listener.Abort();

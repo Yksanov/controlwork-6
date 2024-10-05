@@ -40,45 +40,45 @@
             </div>
         </nav>
     </div>
-    
+
     <div class="row py-5">
         <div class="container col-9 px-5">
-        <h3 class="text-warning">Список задач</h3>
-        <table class="table table-bordered border-primary my-5">
-            <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Заголовок</th>
-                <th scope="col">Имя исполнителя</th>
-                <th scope="col">Дата создания</th>
-                <th scope="col">Статус</th>
-                <th scope="col">Действия</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach(var e in Model.ToDoList){
-            <tr>
-                <th scope="row">@e.Id</th>
-                <td><a href="http://localhost:8000/task.html">@e.Header</a></td>
-                <td>@e.Username</td>
-                <td>@e.CreateDate</td>
-                <td>@e.Status</td>
-                <td>
-                    <div class="d-flex justify-content-between">
-                        @if(e.Status == "new"){
-                        <form method="post" action="index.html">
-                            <input type="submit" class="btn btn-primary" value="Выполнить">
-                        </form>
-                        }
-                        <form method="post" action="index.html">
-                            <a class="btn btn-danger" href="index.html?taskId=@e.Id">Удалить</a>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            }
-            </tbody>
-        </table>
+            <h3 class="text-warning">Список задач</h3>
+            <table class="table table-bordered border-primary my-5">
+                <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col"><a href="http://localhost:8000/task.html">Заголовок</a></th>
+                    <th scope="col">Имя исполнителя</th>
+                    <th scope="col">Дата создания</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach(var e in Model.ToDoList){
+                <tr>
+                    <th scope="row">@e.Id</th>
+                    <td>@e.Header</td>
+                    <td>@e.Username</td>
+                    <td>@e.CreateDate</td>
+                    <td>@e.Status</td>
+                    <td>
+                        <div class="d-flex justify-content-between">
+                            @if(e.Status == "new"){
+                            <form method="post" action="index.html">
+                                <input type="submit" class="btn btn-primary" value="Выполнить">
+                            </form>
+                            }
+                            <form method="get" action="index.html">
+                                <input type="submit" class="btn btn-danger" value="Удалить">
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                }
+                </tbody>
+            </table>
         </div>
         <div class="container col-3">
             <h5 class="text-white" >Добавить новую</h5>
