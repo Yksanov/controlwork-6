@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using RazorEngine;
 using RazorEngine.Templating;
 
@@ -9,6 +10,7 @@ public class MyServer
     private string _siteDirectory;
     private HttpListener _listener;
     private int _port;
+    private List<ToDoList> _toDoLists = JsonSerializer.Deserialize<List<ToDoList>>(File.ReadAllText("../../../tasks.json"));
 
     public async Task RunServerAsync(string path, int port)
     {
@@ -42,26 +44,6 @@ public class MyServer
         Console.WriteLine(context.Request.HttpMethod);
         string filename = context.Request.Url.AbsolutePath;
         Console.WriteLine(filename);
-        string page = filename.Trim();
-        if (!Path.HasExtension(page))
-        {
-            try
-            {
-                page = page.Substring(1);
-                string responcepage = $"<html><head><meta charset='utf8'></head><body><h1>{page}</h1></body></html>";
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responcepage);
-                context.Response.ContentType = GetContentType(filename);
-                context.Response.ContentLength64 = buffer.Length;
-                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.OutputStream.Write(new byte[0]);
-            }
-        }
-        
         filename = _siteDirectory + filename;
         if (File.Exists(filename))
         {
@@ -77,15 +59,19 @@ public class MyServer
                 string IdFrom = context.Request.QueryString["IdFrom"];
                 string IdTo = context.Request.QueryString["IdTo"];
 
-                // List<Employee> employees = Serializer.GetEmployees();
-                // List<Employee> filterId = employees;
-                //
-                // if (int.TryParse(IdFrom, out int idFrom) && int.TryParse(IdTo, out int idTo))
-                // {
-                //     filterId = employees.Where(e => e.Id >= idFrom && e.Id <= idTo).ToList();
-                // }
-                //
-                //content = BuildHtml(filename, IdFrom.Length);
+                List<ToDoList> toDoLists = Serializer.GetEmployees();
+                List<ToDoList> filterId;
+
+                if (int.TryParse(IdFrom, out int idFrom) && int.TryParse(IdTo, out int idTo))
+                {
+                    filterId = toDoLists.Where(e => e.Id >= idFrom && e.Id <= idTo).ToList();
+                }
+                else
+                {
+                    filterId = toDoLists;
+                }
+
+                content = BuildHtml(filename, filterId);
                 
                 
                 context.Response.ContentType = GetContentType(filename);
@@ -110,7 +96,7 @@ public class MyServer
     }
     
     //-------------------------------------------------
-    private string BuildHtml(string filename, int id)
+    private string BuildHtml(string filename, List<ToDoList> toDoLists)
     {
         string html = "";
         string layoutPath = _siteDirectory + "/layout.html";
@@ -122,11 +108,10 @@ public class MyServer
             razorService.AddTemplate(filename, File.ReadAllText(filename));
             razorService.Compile(filename);
         }
-        // var viewModel = new { Employees = employees };
-        // html = razorService.Run(filename, null, viewModel);
+        var viewModel = new { ToDoList = toDoLists };
+        html = razorService.Run(filename, null, viewModel);
         return html;
     }
-    
     //--------------------------------------------------
     private string? GetContentType(string filename)
     {

@@ -6,5 +6,6 @@ public class ToDoList
     public string Header { get; set; }
     public string Username { get; set; }
     public string CreateDate { get; set; }
-    public bool Status { get; set; }
+    public string Status { get; set; }
+    
 }
